@@ -5,9 +5,10 @@ var Scene = function() {
 	this.createRequestAnimationFramePolyfill();
 	this.ratio = window.devicePixelRatio >= 1 ? window.devicePixelRatio : 1; //Is this a retina display?
 	
-	this.$canvas = $('canvas');						//Get a reference to the jQuery object
-	this.canvas = this.$canvas.get(0);				//Get a reference to the DOM element
-	this.context = this.canvas.getContext( '2d' );	//Get a reference to the 2d context, so you can make all of the drawing calls
+	this.$canvas = $('canvas');								//Get a reference to the jQuery object
+	this.canvas = this.$canvas.get(0);						//Get a reference to the DOM element
+	this.context = this.canvas.getContext( '2d' );			//Get a reference to the 2d context, so you can make all of the drawing calls
+	this.currTime = this.prevTime = new Date().getTime();	//Timing variables
 
 	this.addEventListeners();	//Add any event listeners here
 	this.resizeCanvas();		//Size the canvas to be full width
