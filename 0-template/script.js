@@ -2,7 +2,7 @@ var Scene = function() {
 
 	//This is the constructor which will load up the scene, an instance is created at the bottom of the page.
 	
-	this.createRequestAnimationFramePolyfill();
+	Utils.createRequestAnimationFramePolyfill();
 	this.ratio = window.devicePixelRatio >= 1 ? window.devicePixelRatio : 1; //Is this a retina display?
 	
 	this.$canvas = $('canvas');								//Get a reference to the jQuery object
@@ -17,38 +17,25 @@ var Scene = function() {
 	
 	//--------------------------------------------------------------
 	// Start the loop!
-
+	
+	this.dots = [];
+	this.createDots();
+	
 	this.loop();
 	
 	
 };
 		
 Scene.prototype = {
-
-	createRequestAnimationFramePolyfill : function() {
-
-		//Request animation frame syncs your javascript calls with the browser's rendering loop.
-		//This is a polyfill for older browsers that still have the function prefixed.
-
-		window.requestAnimFrame = (
-			window.requestAnimationFrame		||
-			window.webkitRequestAnimationFrame	||
-			window.mozRequestAnimationFrame		||
-			function( callback ){
-				window.setTimeout(callback, 1000 / 60);
-			}
-		);
-
-	},
 	
 	addStats : function() {
 
 		//Third party framerate display
-
 		this.stats = new Stats();
 		this.stats.domElement.style.position = 'absolute';
 		this.stats.domElement.style.top = '0px';
 		$("#container").append( this.stats.domElement );
+		
 	},
 	
 	addEventListeners : function() {
@@ -62,6 +49,33 @@ Scene.prototype = {
 		this.height = this.canvas.height;
 		this.left = this.$canvas.offset().left;
 		this.top = this.$canvas.offset().top;
+	},
+	
+	createDots : function() {
+		
+		for( var i=0; i < 500; i++ ) {
+
+			var color = Utils.hslToFillStyle(
+				170 + Math.random() * 50,
+				100,
+				50,
+				0.5
+			);
+			var dot = new Dot(
+				Math.random() * window.innerWidth,
+				Math.random() * window.innerHeight,
+				Math.random() * 30 + 30,
+				color,
+				this.context
+			);
+			
+			dot.spinSpeed = 0.003 * Math.random();
+			
+			this.dots.push( dot )
+			
+		}
+		
+		
 	},
 			
 	loop : function() {
@@ -81,31 +95,52 @@ Scene.prototype = {
 
 	},
 	
-	rgbToFillStyle : function(r, g, b, a) {
-		if(a === undefined) {
-			return ["rgb(",r,",",g,",",b,")"].join('');
-		} else {
-			return ["rgba(",r,",",g,",",b,",",a,")"].join('');
-		}
-	},
-	
-	hslToFillStyle : function(h, s, l, a) {
-		if(a === undefined) {
-			return ["hsl(",h,",",s,"%,",l,"%)"].join('');
-		} else {
-			return ["hsla(",h,",",s,"%,",l,"%,",a,")"].join('');
-		}
-	},
-	
-	update : function() {
+	update : function( dt ) {
+		
 		this.stats.update();
 		
 		//Clear the canvas
-		this.context.clearRect(0,0,this.width, this.height);
+		this.context.fillStyle = "rgba(255,255,255,0.08)";
+		this.context.fillRect(0,0,this.width, this.height);
+		
+		//Start your update code here
+		
+		for( var i=0; i < this.dots.length; i++ ) {
+			
+			this.dots[i].draw(this.currTime, dt);
+		}
 		
 	}
 	
 };
+
+var Dot = function( x, y, size, color, context ) {
+	this.x = x;
+	this.y = y;
+	this.size = size;
+	this.color = color;
+	this.context = context;
+	this.radius = 100;
+	this.spinSpeed = 0.003;
+};
+
+Dot.prototype = {
+	
+	draw : function( time, dt ) {
+		
+		var ctx = this.context;
+		
+		ctx.fillStyle = this.color;
+		
+		ctx.fillRect(
+			Math.cos( time * this.spinSpeed ) * this.radius + this.x,
+			Math.sin( time * this.spinSpeed ) * this.radius + this.y,
+			this.size,
+			this.size
+		);
+		
+	},
+}
 
 var scene;
 
